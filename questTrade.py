@@ -107,6 +107,7 @@ def getUpToDateDiviends(account,q):
         startDate=startDate.replace(month=month,day=1)
         #maximum of 31 days of data at once
         day =getLastDay(startDate.year,startDate.month)
+        #only allow to search 31 days 
         if(today.month == startDate.month):
             day= min(today.day,day)
         endDate=endDate.replace(month=month,day=day)
@@ -118,14 +119,10 @@ def getUpToDateDiviends(account,q):
         activites+=getCurrentDivends(startDate,endDate,account,q)
     print()
     return activites
-       
-
-
 
 def getLastDay(year,month):
     return monthrange(year, month) [1]
-
-def main():
+def getupToDateSummary():
     q= connectQuestrade()
     accounts =q.accounts['accounts']
     netAmount =0
@@ -146,8 +143,11 @@ def main():
                     stockPayement['netAmount']=  stockPayement['netAmount']+transaction['netAmount']
                     netAmount+=transaction['netAmount']
     stocksPayments['totalAmount'] =netAmount
-    for account in stocksPayments:
-        print(stocksPayments[account])
+    for stock in stocksPayments:
+        print(stocksPayments[stock])
+
+def main():
+    getupToDateSummary()
 
         
 if __name__ == "__main__":
