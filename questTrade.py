@@ -2,10 +2,11 @@
 
 from questrade_api import Questrade
 import logging as log
-from settings import arn , token, emailOn, TFSA_ROOM
+from settings import arn , token, emailOn, TFSA_ROOM, WEALTH_SIMPLE_CONTRIBUTIONS
 import datetime 
 from calendar import monthrange
 import boto3
+
 
 def sendEmail(message):
     sns = boto3.resource('sns')
@@ -166,14 +167,17 @@ def createContributions(accounts):
             message+=availableTfsaRoom(TFSA_ROOM,contributionAmont)
    
 
-    log.info(message)
+    log.debug(message)
     return message
 
 def availableTfsaRoom(TFSA_contribution_room,amount_contributed ):
     #calculate the number of contribution room I have
-    contribution_room_left = TFSA_contribution_room - amount_contributed
 
-    return    f'\n Available TFSA contribution room to invest {contribution_room_left:,.2f} \n \n'
+    contribution_room_left = TFSA_contribution_room - amount_contributed -WEALTH_SIMPLE_CONTRIBUTIONS
+    
+    #calcualte the goal percentage
+    goal = (contribution_room_left / TFSA_contribution_room )*100
+    return    f'\n Available TFSA contribution room to invest {contribution_room_left:,.2f} Goal:{goal:.2f} %\n \n'
     
 
 def createDividendsMessage(stocksPayments):
@@ -238,7 +242,8 @@ def notifyDateSummary():
     message = getupToDateSummary()
     sendEmail(message)
 
-def notifyDateSummary():
+
+def notifyContributions():
     message = getupToDateSummary()
     sendEmail(message)
 
