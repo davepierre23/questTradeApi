@@ -252,7 +252,7 @@ def notifyBalence():
     sendEmail(message)
 def main(event=None,context=None):
     log.basicConfig(level=log.INFO)
-    notifyDateSummary()
+    notifyDividendSummary()
 
 
 if __name__ == "__main__":
