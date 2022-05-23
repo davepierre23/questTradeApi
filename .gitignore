@@ -1,3 +1,5 @@
 # ignore all logs
-settings.py
+
 _*
+.vscode
+OtherFiles
