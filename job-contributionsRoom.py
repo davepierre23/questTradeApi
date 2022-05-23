@@ -1,9 +1,9 @@
 
-from questTrade import notifyBalence
+from questTrade import notifyContributions
 
 
 def main(event=None,context=None):
-    notifyBalence()
+    notifyContributions()
 
 if __name__ == "__main__":
     main()

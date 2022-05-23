@@ -100,7 +100,7 @@ def getActivitesUpToDate(account,q):
 
 def getLastDay(year,month):
     return monthrange(year, month) [1]
-def getupToDateSummary():
+def populateModel():
     q= connectQuestrade()
     accounts =q.accounts['accounts']
 
@@ -142,11 +142,11 @@ def getupToDateSummary():
         
         createContributions(acccount_contribution)
 
-
-
-
+    models = {}
+    models['stocksPayments'] = acccount_contribution
+    models['acccount_contribution'] = stocksPayments
             
-    return createDividendsMessage(stocksPayments)
+    return  models
 
   
 def createContributions(accounts):
@@ -238,13 +238,13 @@ def createBallenceMessage(account,account_balance):
     message+="\n"   
     return message
 
-def notifyDateSummary():
-    message = getupToDateSummary()
+def notifyDividendSummary():
+    message = createDividendsMessage(populateModel()['stocksPayments'])
     sendEmail(message)
 
 
 def notifyContributions():
-    message = getupToDateSummary()
+    message = createContributions(populateModel() ["acccount_contribution"])          
     sendEmail(message)
 
 def notifyBalence():
