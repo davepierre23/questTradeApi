@@ -1,5 +1,7 @@
 
 
+from email import message
+from symtable import Symbol
 from questrade_api import Questrade
 import logging as log
 from settings import arn , token, emailOn, TFSA_ROOM, WEALTH_SIMPLE_CONTRIBUTIONS
@@ -12,7 +14,7 @@ def sendEmail(message):
     sns = boto3.resource('sns')
     topic_arn= arn
     topic=sns.Topic(arn=topic_arn)
-    if(not emailOn):
+    if(emailOn):
         response = topic.publish(Message=message)
         message_id = response['MessageId']
         return message_id
@@ -107,11 +109,14 @@ def populateModel():
     stocksPayments = {}
 
     acccount_contribution =  {}
+    acccount_journal = {}
     for account in accounts:
         account_type = account['type']
         acccount_contribution[account_type] = []
+        acccount_journal[account_type ] = []
         results=getActivitesUpToDate(account,q)
         for transaction in results:
+            log.info(transaction)
             if(transaction.get('type')=='Dividends'):
                 if( not transaction['symbol'] in stocksPayments):
                     stockPayement ={}
@@ -130,7 +135,7 @@ def populateModel():
                 newTransaction={}
                 currency =transaction['currency']
                 amount = transaction['netAmount']
-                log.info(transaction)
+                
                 transactionDate = transaction['settlementDate']
                 currency =transaction['currency']
                 #extract only date
@@ -139,12 +144,28 @@ def populateModel():
                 newTransaction['amount']=amount
                 newTransaction['type']= account_type
                 acccount_contribution[account_type].append(newTransaction )
+
+            if(transaction.get('action')=='BRW'):
+                if (transaction.get('symbol')=='DLR.U.TO'):
+                    newTransaction={}
+                    description =transaction['description']
+                    quantity = transaction['quantity']
+                    
+                    transactionDate = transaction['settlementDate']
+                    currency =transaction['currency']
+                    #extract only date
+                    newTransaction['transactionDate'] =transactionDate[: len('2022-02-23')]
+                    newTransaction['description']=description
+                    newTransaction['quantity']=quantity
+                    newTransaction['type']= account_type
+                    acccount_journal[account_type].append(newTransaction )    
         
         createContributions(acccount_contribution)
 
     models = {}
-    models['stocksPayments'] = acccount_contribution
-    models['acccount_contribution'] = stocksPayments
+    models['stocksPayments'] = stocksPayments
+    models['acccount_contribution'] = acccount_contribution
+    models['acccount_journal'] = acccount_journal
             
     return  models
 
@@ -162,7 +183,7 @@ def createContributions(accounts):
             contributionAmont+=amount
             totalAmount+=amount
         
-        message+=f"Total Amount {contributionAmont:,.2f}\n"
+        message+=f"Total Amount from Questrade : {contributionAmont:,.2f}\n"
         if(account=="TFSA"):
             message+=availableTfsaRoom(TFSA_ROOM,contributionAmont)
    
@@ -172,12 +193,16 @@ def createContributions(accounts):
 
 def availableTfsaRoom(TFSA_contribution_room,amount_contributed ):
     #calculate the number of contribution room I have
-
+    message=""
     contribution_room_left = TFSA_contribution_room - amount_contributed -WEALTH_SIMPLE_CONTRIBUTIONS
-    
-    #calcualte the goal percentage
-    goal = (contribution_room_left / TFSA_contribution_room )*100
-    return    f'\n Available TFSA contribution room to invest {contribution_room_left:,.2f} Goal:{goal:.2f} %\n \n'
+    message+=f"Total Amount from Wealth Simple : {WEALTH_SIMPLE_CONTRIBUTIONS:,.2f}\n"
+    total_amount = amount_contributed + WEALTH_SIMPLE_CONTRIBUTIONS
+    message+=f"Total Amount in TFSA Contributions: {total_amount:,.2f}\n"
+    message+=f"Total Amount in TFSA Room: {TFSA_contribution_room:,.2f}\n"
+    #calculate the goal percentage
+    goal = (total_amount/ TFSA_contribution_room )*100
+    message +=f'\n Available TFSA contribution room to invest {contribution_room_left:,.2f} Goal: {goal:.2f} %\n \n'
+    return message
     
 
 def createDividendsMessage(stocksPayments):
@@ -203,6 +228,24 @@ def createDividendsMessage(stocksPayments):
 
 
 
+def createPendingNorbitGambitAction(journalEntries):
+  
+    message=""
+    todayDate=datetime.date.today()
+    for account in journalEntries:
+        message+=f"Summary Norbit Gambit pending action for account :{account} \n"
+        for transcation in account:
+            
+            transactionDate= datetime.strptime(transcation["transactionDate"], '%y-%m-%d')
+            if(transactionDate.date() == todayDate):
+                quantity =transcation['quantity']
+                symbol =transcation['quantity']
+                if(transcation.get('symbol')=='DLR.U.TO'):
+                    message+= f'{transactionDate} You have {quantity} shares of {symbol} to sell \n'
+
+    return message
+        
+        
 
 #get infromation that is available in questrade and send an email to me 
 def getBalences():
@@ -247,12 +290,16 @@ def notifyContributions():
     message = createContributions(populateModel() ["acccount_contribution"])          
     sendEmail(message)
 
+def  notifyPendingJournalShares():
+    message = createPendingNorbitGambitAction(populateModel() ["acccount_journal"])          
+    sendEmail(message)
+
 def notifyBalence():
     message = getBalences()
     sendEmail(message)
 def main(event=None,context=None):
     log.basicConfig(level=log.INFO)
-    notifyDividendSummary()
+    notifyPendingJournalShares()
 
 
 if __name__ == "__main__":
