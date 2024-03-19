@@ -1,6 +1,8 @@
 # generate token through login questrade , click on Name and App hub and register a personal app and copy token here
-token = 'AgQaiSyS3rN_au3-uvAniGWdZ-9-5R8l0'
-arn ="arn:aws:sns:ca-central-1:004369745227:stockPortfolio"
-emailOn= True
-TFSA_ROOM=26936.98
-WEALTH_SIMPLE_CONTRIBUTIONS = 1500 + 800+ 1500
+token2 = 'BYEwVRX6IyBlnuLlRl2Vkg6MyZf6F69Y0'
+arn ="arn:aws:sns:ca-central-1:628324890947:questrade"
+emailOn= False
+TFSA_ROOM=6396.98
+RRSP=30275.00  
+WEALTH_SIMPLE_CONTRIBUTIONS = 3000
+token = 'ds'

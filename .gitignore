@@ -3,3 +3,6 @@
 _*
 .vscode
 OtherFiles
+questTrade_r_env
+*.pdf
+.DS_Store
