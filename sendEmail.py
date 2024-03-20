@@ -9,7 +9,7 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
+import settings 
 To= 'dave.pierre23@outlook.com'
 
 def sendMessageWithAttachment(file_path,subject):
@@ -33,4 +33,5 @@ def sendMessageWithAttachment(file_path,subject):
 
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
         smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        smtp.send_message(msg)
+        if(settings.emailOn):
+            smtp.send_message(msg)

@@ -24,7 +24,7 @@ def send_email(message):
     sns = boto3.resource("sns")
     topic_arn = arn
     topic = sns.Topic(arn=topic_arn)
-    if emailOn:
+    if not emailOn:
         try:
             response = topic.publish(Message=message)
             message_id = response["MessageId"]
@@ -90,62 +90,39 @@ def calculateTotalDividend(currentPrice,dividendPayments, numberofStocks, checkD
         log.debug(f"Total Earnings {totalPrice}")
     return totalPrice
 
-   
-def getMonthlyAcitivites(startDate,endDate,account,q):
-    log.debug(account)
-    startTime='2020-12-05T23:59:59-0'
-    endTime='2020-12-05T23:59:59-0'
-    startTime= startTime.replace('2020-12-05',startDate.strftime("%Y-%m-%d"))
-    endTime=endTime.replace('2020-12-05',endDate.strftime("%Y-%m-%d"))
 
-    log.debug("Start Time "+startTime)
-    log.debug("End Time "+startTime)
-    log.debug("Account Type"+account['type'])
-    actvities = q.account_activities(account['number'],startTime=startTime,endTime=endTime)
-    for activity in actvities.get('activities'):
+def getMonthlyActivities(startDate, endDate, account, q):
+    log.debug("Account: " + str(account))
+    startTime = startDate.strftime("%Y-%m-%d") + 'T23:59:59-0'
+    endTime = endDate.strftime("%Y-%m-%d") + 'T23:59:59-0'
 
+    log.debug("Start Time: " + startTime)
+    log.debug("End Time: " + endTime)
+    log.debug("Account Type: " + account['type'])
+
+    activities = q.account_activities(account['number'], startTime=startTime, endTime=endTime)
+
+    for activity in activities.get('activities'):
         log.debug(activity)
         log.debug("")
-    if(actvities.get('activities')) :
-        return actvities['activities']
-    else:
-        return []
-  
+    return activities.get('activities', [])
 
+def getActivitiesUpToDate(account, q):
+    activities = []
+    today = datetime.date.today()
 
-def getActivitesUpToDate(account,q):
-    activites = []
-    today= datetime.date.today()
-    startDate=  datetime.date.today()
-    endDate = datetime.date.today()
-    #used to change years 
-    # startDate = startDate.replace(year=(startDate.year-2))
-    # endDate = endDate.replace(year=(endDate.year-2))
-    for month in range(1,12):
-       
-        startDate=startDate.replace(month=month,day=1)
-        #maximum of 31 days of data at once
-        day =getLastDay(startDate.year,startDate.month)
-        #only allow to search 31 days 
-        if(today.month == startDate.month):
-            day= min(today.day,day)
-        endDate=endDate.replace(month=month,day=day)
-        if(day ==32):
-            day =31
-            activites+=getMonthlyAcitivites(startDate,endDate,account,q)
-            startDate=startDate.replace(month=month,day=32)
-            day =getLastDay(startDate.year,startDate.month)
-       
-        #cant make an request if it had not happen yet
-        if(endDate>datetime.date.today()):
-            return activites
-        activites+=getMonthlyAcitivites(startDate,endDate,account,q)
- 
+    for month in range(1, 13):
+        startDate = datetime.date(today.year, month, 1)
+        endDate = datetime.date(today.year if month != 12 else today.year + 1, month % 12 + 1, 1) - datetime.timedelta(days=1)
+        endDate = min(today, endDate)
 
-    return activites
+        activities += getMonthlyActivities(startDate, endDate, account, q)
 
-def getLastDay(year,month):
-    return monthrange(year, month) [1]
+        if endDate >= today:
+            break
+
+    return activities
+
 
 def populateModel():
     q= connectQuestrade(token2)
@@ -159,7 +136,7 @@ def populateModel():
         account_type = account['type']
         acccount_contribution[account_type] = []
         acccount_journal[account_type ] = []
-        results=getActivitesUpToDate(account,q)
+        results=getActivitiesUpToDate(account,q)
         for transaction in results:
             log.info(transaction)
             if(transaction.get('type')=='Dividends'):
@@ -237,13 +214,13 @@ def createContributions(accounts):
             contributionAmount += amount
             totalAmount += amount
             if account == "TFSA":
-                tfsa_data.append([contribution['transactionDate'],contribution['amount']])
+                tfsa_data.append([contribution['transactionDate'],round(contribution['amount'],2)])
 
             if account == "FHSA":
-                fhsa_data.append([contribution['transactionDate'],contribution['amount']])
+                fhsa_data.append([contribution['transactionDate'],round(contribution['amount'],2)])
 
             if account == "RRSP":
-                rrsp_data.append([contribution['transactionDate'],contribution['amount']])
+                rrsp_data.append([contribution['transactionDate'],round(contribution['amount'],2)])
 
 
             
@@ -277,7 +254,11 @@ def availableTfsaRoom(TFSA_contribution_room, amount_contributed,results):
     # Calculate the goal percentage
     goal = (total_amount / TFSA_contribution_room) * 100
     message += f"\n Available TFSA contribution room to invest: ${contribution_room_left:,.2f} Goal: {goal:.2f}%\n\n"
-   
+   # Round the values to two decimal places before saving them to the results dictionary
+    contribution_room_left = round(contribution_room_left, 2)
+    TFSA_contribution_room = round(TFSA_contribution_room, 2)
+    amount_contributed = round(amount_contributed, 2)
+    goal = round(goal, 2)
     results["TFSA_contribution_room_left"]= contribution_room_left
     results["TFSA_contribution_room"]= TFSA_contribution_room
     results["TFSA_contributions"]= amount_contributed
@@ -347,7 +328,7 @@ def createDividendsMessage(stocksPayments):
         symbol = stock['symbol']
         netAmount = stock['netAmount']
         currenciesAmounts[currency] += netAmount
-        data.append([symbol,netAmount,currency])
+        data.append([symbol,round(netAmount,2),currency])
         # Add a row to the table
         table.append([symbol, f"{netAmount:.2f}", currency])
 

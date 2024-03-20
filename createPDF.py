@@ -36,9 +36,8 @@ def create_dividend_summary_pdf(file_path,data,total_cad,total_usd):
     # Add total amounts
     total_cad = 322.39
     total_usd = 23.60
-    elements.append(Paragraph(f"Total amount Dividends received in CAD: {total_cad}", normal_style))
-    elements.append(Paragraph(f"Total amount Dividends received in USD: {total_usd}", normal_style))
-
+    elements.append(Paragraph(f"Total amount Dividends received in CAD: {total_cad:.2f}", normal_style))
+    elements.append(Paragraph(f"Total amount Dividends received in USD: {total_usd:.2f}", normal_style))
     # Build PDF
     doc.build(elements)
 
@@ -85,18 +84,18 @@ def create_contributions_summary_pdf(file_path,tfsa_data, rrsp_data,fhsa_data, r
     elements.append(fhsa_table)
     elements.append(Paragraph("<br/>", normal_style))
 
-    elements.append(Paragraph(f"Total Amount from Wealth Simple (TFSA): {results['TFSA_contributions']}", normal_style))
-    elements.append(Paragraph(f"Total Amount in TFSA Contributions: {results['TFSA_contributions']}", normal_style))
-    elements.append(Paragraph(f"Total Amount in TFSA Room: {results['TFSA_contribution_room']}", normal_style))
-    elements.append(Paragraph(f"Available TFSA contribution room to invest: {results['TFSA_contribution_room_left']} Goal: {results['TFSA_goal']}", normal_style))
+    elements.append(Paragraph(f"Total Amount from Wealth Simple (TFSA): {results['TFSA_contributions']:.2f}", normal_style))
+    elements.append(Paragraph(f"Total Amount in TFSA Contributions: {results['TFSA_contributions']:.2f}", normal_style))
+    elements.append(Paragraph(f"Total Amount in TFSA Room: {results['TFSA_contribution_room']:.2f}", normal_style))
+    elements.append(Paragraph(f"Available TFSA contribution room to invest: {results['TFSA_contribution_room_left']:.2f} Goal: {results['TFSA_goal']:.2f}", normal_style))
 
-    elements.append(Paragraph(f"Total Amount in FHSA Contributions: {results['FHSA_contributions']}", normal_style))
-    elements.append(Paragraph(f"Total Amount in FHSA Room: {results['FHSA_contribution_room']}", normal_style))
-    elements.append(Paragraph(f"Available FHSA contribution room to invest: {results['FHSA_contribution_room_left']} Goal: {results['FHSA_goal']}", normal_style))
+    elements.append(Paragraph(f"Total Amount in FHSA Contributions: {results['FHSA_contributions']:.2f}", normal_style))
+    elements.append(Paragraph(f"Total Amount in FHSA Room: {results['FHSA_contribution_room']:.2f}", normal_style))
+    elements.append(Paragraph(f"Available FHSA contribution room to invest: {results['FHSA_contribution_room_left']:.2f} Goal: {results['FHSA_goal']:.2f}", normal_style))
 
-    elements.append(Paragraph(f"Total Amount in RRSP Contributions: {results['RRSP_contributions']}", normal_style))
-    elements.append(Paragraph(f"Total Amount in RRSP Room: {results['RRSP_contribution_room']}", normal_style))
-    elements.append(Paragraph(f"Available RRSP contribution room to invest: {results['RRSP_contribution_room_left']} Goal: {results['RRSP_goal']}", normal_style)) 
+    elements.append(Paragraph(f"Total Amount in RRSP Contributions: {results['RRSP_contributions']:.2f}", normal_style))
+    elements.append(Paragraph(f"Total Amount in RRSP Room: {results['RRSP_contribution_room']:.2f}", normal_style))
+    elements.append(Paragraph(f"Available RRSP contribution room to invest: {results['RRSP_contribution_room_left']:.2f} Goal: {results['RRSP_goal']:.2f}", normal_style)) 
 
             # Build PDF
     doc.build(elements)

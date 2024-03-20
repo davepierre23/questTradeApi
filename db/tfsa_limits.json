@@ -1,0 +1,18 @@
+[
+    {"year": 2009, "dollar_limit": 5000},
+    {"year": 2010, "dollar_limit": 5000},
+    {"year": 2011, "dollar_limit": 5000},
+    {"year": 2012, "dollar_limit": 5000},
+    {"year": 2013, "dollar_limit": 5500},
+    {"year": 2014, "dollar_limit": 5500},
+    {"year": 2015, "dollar_limit": 10000},
+    {"year": 2016, "dollar_limit": 5500},
+    {"year": 2017, "dollar_limit": 5500},
+    {"year": 2018, "dollar_limit": 5500},
+    {"year": 2019, "dollar_limit": 6000},
+    {"year": 2020, "dollar_limit": 6000},
+    {"year": 2021, "dollar_limit": 6000},
+    {"year": 2022, "dollar_limit": 6000},
+    {"year": 2023, "dollar_limit": 6500},
+    {"year": 2024, "dollar_limit": 7000}
+]
